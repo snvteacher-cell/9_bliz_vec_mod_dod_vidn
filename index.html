@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-family:system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Бліц: вектори і дії з ними</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;600;700;800&display=swap">
+<style>
+/* Один стовпчик-«зошит»: питання по одному, прогрес угорі, малюнок над варіантами */
+:root{
+  --bg:#eef2f6; --card:#ffffff; --ink:#1b2430; --muted:#5d6b7a; --line:#c9d3de;
+  --acc:#2457b3; --acc-soft:#e3ebf9; --ok:#1d7a4c; --ok-soft:#e1f3e9; --bad:#c23b2e; --bad-soft:#fbe6e3;
+  --fig:#f5f8fc; --m1:#c23b2e; --m2:#d9771c; --m3:#1d7a4c;
+  --font:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --math:Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a22; --card:#1d2530; --ink:#e7edf4; --muted:#9aa8b8; --line:#33404f;
+  --acc:#7ea6f0; --acc-soft:#22324d; --ok:#5cc58f; --ok-soft:#183427; --bad:#f07a6c; --bad-soft:#3b1f1c;
+  --fig:#18202a; --m1:#f07a6c; --m2:#f0a35c; --m3:#5cc58f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a22; --card:#1d2530; --ink:#e7edf4; --muted:#9aa8b8; --line:#33404f;
+  --acc:#7ea6f0; --acc-soft:#22324d; --ok:#5cc58f; --ok-soft:#183427; --bad:#f07a6c; --bad-soft:#3b1f1c;
+  --fig:#18202a; --m1:#f07a6c; --m2:#f0a35c; --m3:#5cc58f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-direction:column;gap:4px}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{margin:0;font-size:clamp(26px,5vw,34px);font-weight:800;text-wrap:balance}
+.bar{display:flex;gap:4px}
+.bar span{flex:1;height:8px;border-radius:4px;background:var(--line)}
+.bar span.ok{background:var(--ok)}.bar span.bad{background:var(--bad)}.bar span.cur{background:var(--acc)}
+.q{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.qn{font-size:14px;color:var(--muted);font-weight:600}
+.qt{font-size:21px;font-weight:600;text-wrap:balance}
+.v{font-family:var(--math);font-style:italic}
+.fig{display:flex;justify-content:center;background:var(--fig);border-radius:12px;padding:8px}
+.fig svg{max-width:100%;height:auto}
+.opts{display:grid;gap:10px}
+.opts.two{grid-template-columns:1fr 1fr}
+.opt{font:inherit;font-size:18px;text-align:left;padding:12px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center}
+.opt:hover{border-color:var(--acc)}
+.opt:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.opt.sel{border-color:var(--acc);background:var(--acc-soft)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt .box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-size:15px}
+.opt.sel .box{border-color:var(--acc);background:var(--acc);color:var(--card)}
+.calc{display:flex;flex-direction:column;gap:12px;font-size:19px}
+.calc .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input.num{font:inherit;font-size:20px;font-weight:700;width:96px;padding:6px 10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--acc);text-align:center}
+select{font:inherit;font-size:18px;font-weight:700;color:var(--acc);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:6px 8px;max-width:100%}
+select.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+select.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+select:disabled{opacity:1}
+input.num.right{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+input.num.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.fb{border-radius:12px;padding:12px 16px;font-size:17px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb b{display:block;margin-bottom:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn[hidden]{display:none}
+input.name{font:inherit;font-size:20px;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+input.name:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{font:inherit;font-weight:700;font-size:18px;padding:12px 22px;border-radius:12px;border:none;background:var(--acc);color:var(--card);cursor:pointer}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--acc);border:2px solid var(--acc)}
+.result{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.big{font-size:56px;font-weight:800;color:var(--acc);font-variant-numeric:tabular-nums;line-height:1}
+.grade{font-size:20px;font-weight:600}
+.review{text-align:left;width:100%;display:flex;flex-direction:column;gap:8px}
+.review div{border-left:4px solid var(--bad);background:var(--bad-soft);padding:8px 12px;border-radius:0 10px 10px 0;font-size:16px}
+.review div i{color:var(--muted);font-style:normal}
+.hint{font-size:14px;color:var(--muted)}
+@media (max-width:480px){.opts.two{grid-template-columns:1fr}.q{padding:16px}.qt{font-size:19px}}
+@media (prefers-reduced-motion:no-preference){.q{animation:in .25s ease}@keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}}
+</style><style>
+.vc{display:inline-block;position:relative;padding-top:.36em;line-height:1;font-family:var(--math);font-style:italic;font-size:1.06em;margin:0 .04em;white-space:nowrap}
+.vc::before{content:"";position:absolute;left:.06em;right:.16em;top:.14em;border-top:.085em solid currentColor}
+.vc::after{content:"";position:absolute;right:.02em;top:calc(.14em - .135em + .04em);border-left:.28em solid currentColor;border-top:.135em solid transparent;border-bottom:.135em solid transparent}
+.m{white-space:nowrap}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;color:var(--acc);background:var(--acc-soft);border-radius:10px;padding:4px 12px;font-size:16px}
+.topics{width:100%;display:flex;flex-direction:column;gap:8px;text-align:left}
+.tp{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;font-size:16px}
+.tp .meter{grid-column:1 / -1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.tp .meter span{display:block;height:100%;background:var(--ok)}
+.tp .meter span.mid{background:var(--m2)}.tp .meter span.low{background:var(--bad)}
+.tp b{font-variant-numeric:tabular-nums}
+</style>
+<style>
+.sub{font-size:.7em}
+.blank{display:inline-block;min-width:2.2em;border-bottom:2px solid var(--acc);color:var(--acc);text-align:center;font-weight:700}
+.gq{display:inline-block;min-width:.9em;color:var(--acc);font-style:normal;font-family:var(--font);font-weight:800}
+.fx{font-size:22px;white-space:nowrap}
+.srow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.srow .lhs{font-size:21px;white-space:nowrap;min-width:170px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg .opt{padding:8px 14px;font-size:19px}
+.inrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:22px}
+.kp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;max-width:420px}
+.kp button{font:inherit;font-size:20px;font-weight:700;padding:8px 0;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.kp button:hover{border-color:var(--acc)}
+.btn.sm{font-size:16px;padding:8px 14px}
+.dv{cursor:grab}svg[style*=crosshair] .dv{cursor:crosshair}.dv.grab{cursor:grabbing}
+.lnk{font:inherit;font-size:14px;background:none;border:none;color:var(--acc);text-decoration:underline;cursor:pointer;padding:0}
+.kp button:disabled{opacity:.4;cursor:default}
+input.num.act{border-color:var(--acc)}
+</style>
+<style>
+.rt{display:inline-block;position:relative;padding-left:.62em;white-space:nowrap}
+.rt .sg{position:absolute;left:0;top:0;height:100%;width:.62em;overflow:visible;stroke-width:1.6px}
+.rt .rad{display:inline-block;border-top:1.6px solid currentColor;padding:.12em .1em 0 .05em;line-height:1.2}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.rt.rf{padding-left:16px}.rt.rf .sg{width:16px;stroke-width:2px}
+.rt.rf .rad{border-top-width:2px;padding:5px 3px 2px;line-height:1.3}
+.copy{text-align:left;font-size:12px;color:var(--muted);opacity:.75;margin-top:8px}
+.bar.nums{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:4px}
+.bar.nums button{font:inherit;font-size:15px;font-weight:700;height:34px;padding:0;border-radius:8px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums}
+.bar.nums button:hover:not(:disabled){border-color:var(--acc)}
+.bar.nums button.ok{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.bar.nums button.bad{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.bar.nums button.cur{outline:3px solid var(--acc);outline-offset:1px;border-color:var(--acc)}
+.bar.nums button:disabled{cursor:default}
+@media (max-width:480px){.bar.nums{grid-template-columns:repeat(8,minmax(0,1fr))}}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--acc);background:var(--acc-soft);border-radius:6px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+.form{font-size:22px;line-height:2.3}
+.form input.num{width:76px;padding:2px 6px;margin:0 2px}
+.tx{font-size:19px;line-height:2.1}
+@media (max-width:480px){.form{font-size:20px}.form input.num{width:58px}}
+.tx select{font-size:17px;padding:3px 6px;margin:0 2px}
+.tfrow{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.tfrow:first-child{border-top:none;padding-top:0}
+.tfrow .st{font-size:19px}
+.inl .tfrow{flex-direction:row;align-items:center;flex-wrap:wrap;gap:6px 14px;padding:6px 0}.inl .tfrow .st{min-width:70px}.inl .seg .opt{padding:6px 12px;font-size:17px}
+.opt.multi.sel .box{border-radius:6px}
+/* з'єднання пар */
+.con{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.con .col{display:flex;flex-direction:column;gap:8px}
+.con .opt{justify-content:space-between;font-size:20px;padding:8px 12px;min-height:50px}
+.con .opt .pn{flex:none;min-width:26px;height:26px;border-radius:13px;display:grid;place-items:center;font:700 14px var(--font);color:#fff;font-style:normal}
+.con .opt.act{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+/* послідовність */
+.ord{display:flex;flex-direction:column;gap:8px}
+.ord .lbl{font-size:14px;color:var(--muted);font-weight:600}
+.ord .opt{font-size:17px;padding:10px 14px}
+.ord .opt .k{flex:none;width:28px;height:28px;border-radius:14px;background:var(--acc);color:var(--card);display:grid;place-items:center;font-weight:700;font-size:15px}
+.ord .slot{border:2px dashed var(--line);border-radius:12px;padding:10px 14px;color:var(--muted);font-size:15px}
+/* побудова */
+.bsvg{cursor:crosshair;touch-action:manipulation}
+</style>
+<div class="wrap">
+<header>
+  <div class="top"><div class="eyebrow">Геометрія 9 · Вектори · Бліц</div><div class="timer" id="timer">0:00</div></div>
+  <h1>Вектори: модуль, координати, додавання і віднімання</h1>
+  <div class="hint">15 завдань різного типу: вибір кількох відповідей, побудова на сітці, обчислення з пропусками, з’єднання пар, послідовність кроків. Номери вгорі — щоб перейти до будь-якого завдання.</div>
+</header>
+<div class="hint" id="who" hidden style="font-weight:700;color:var(--ink)"></div>
+<div class="bar" id="bar"></div>
+<div id="main"></div>
+<footer class="copy">© Сидорчук Н.В., 2026</footer>
+</div>
+
+<script>
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const V=s=>`<span class="vc">${s}</span>`, I=s=>`<span class="v">${s}</span>`, M=s=>`<span class="m">${s}</span>`;
+const mn=v=>String(v).replace('-','−');
+const pp=v=>v<0?'('+mn(v)+')':String(v);
+const C=(x,y)=>M(`(${mn(x)};&nbsp;${mn(y)})`);
+const VC=(n,x,y)=>M(V(n)+C(x,y));
+const PC=(n,x,y)=>M(I(n)+C(x,y));
+const SUM=(...v)=>M(v.map(V).join('&nbsp;+&nbsp;'));
+const DIF=(a,b)=>M(V(a)+'&nbsp;−&nbsp;'+V(b));
+const EQ=(l,r)=>M(l+'&nbsp;=&nbsp;'+r);
+const ABS=s=>M(`|${s}|`);
+const SQ='<svg class="sg" viewBox="0 0 10 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0.5,17 L2.5,15.5 L5,28.5 L9.6,0.6 L10,0.6" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/></svg>';
+const RT=s=>`<span class="rt">${SQ}<span class="rad">${s}</span></span><span class="sr">√(${s})</span>`;
+const RTF=s=>`<span class="rt rf">${SQ}<span class="rad">${s}</span></span>`;
+const Z=V('0');
+const IN='[]';                                  /* місце для поля вводу у формі */
+const TOP={vec:'Вектор. Рівні вектори',col:'Колінеарні вектори',mod:'Модуль вектора',coord:'Координати вектора',ops:'Додавання і віднімання',tf:'Теорія'};
+const LET=['A','B','C','D','E','F','K','M','N','P','T','S','L'];
+const letters=n=>shuffle(LET).slice(0,n);
+const end=(p,v)=>[p[0]+v[0],p[1]+v[1]];
+const same=(u,v)=>u[0]===v[0]&&u[1]===v[1];
+const cross=(a,b)=>a[0]*b[1]-a[1]*b[0];
+
+/* ---------- малюнки ---------- */
+const CELL=36,PX=14,PT=30;
+function arrowSvg(x1,y1,x2,y2,c,w=4,dash){const L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L,hx=x2-16*ux,hy=y2-16*uy,px=-uy*7,py=ux*7;
+ return `<line x1="${x1}" y1="${y1}" x2="${hx}" y2="${hy}" style="stroke:var(${c});stroke-width:${w}${dash?';stroke-dasharray:8 6':''}" stroke-linecap="round"/><path d="M${x2},${y2} L${hx+px},${hy+py} L${hx-px},${hy-py} z" style="fill:var(${c})"/><circle cx="${x1}" cy="${y1}" r="4" style="fill:var(${c})"/>`}
+function vlab(x,y,t,c){return `<text x="${x}" y="${y}" font-size="26" font-style="italic" font-family="Georgia,serif" text-anchor="middle" style="fill:var(${c})">${t}</text><line x1="${x-7}" y1="${y-24}" x2="${x+5}" y2="${y-24}" style="stroke:var(${c});stroke-width:2"/><path d="M${x+10},${y-24} L${x+3},${y-28} L${x+3},${y-20} z" style="fill:var(${c})"/>`}
+function plab(x,y,t){return `<text x="${x}" y="${y}" font-size="22" font-style="italic" font-weight="700" font-family="Georgia,serif" text-anchor="middle" style="fill:var(--ink)">${t}</text>`}
+/* сітка W×H клітинок; items: {v:[p,q],c,n,g} — вектор, {pt,n,off} — точка */
+function grid(items,W,H,cls=''){const X=x=>PX+x*CELL,Y=y=>PT+(H-y)*CELL;let s='';
+ for(let i=0;i<=W;i++)s+=`<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(H)}" style="stroke:var(--line);stroke-width:1"/>`;
+ for(let j=0;j<=H;j++)s+=`<line x1="${X(0)}" y1="${Y(j)}" x2="${X(W)}" y2="${Y(j)}" style="stroke:var(--line);stroke-width:1"/>`;
+ for(const it of items)if(it.v){const[a,b]=it.v;if(it.g!=null)s+=`<g class="dv" data-g="${it.g}"><line x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}" style="stroke:transparent;stroke-width:26" stroke-linecap="round"/>`;
+  s+=arrowSvg(X(a[0]),Y(a[1]),X(b[0]),Y(b[1]),it.c);
+  if(it.n){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);let nx=-dy/L,ny=dx/L;if(it.flip?ny>0:ny<0){nx=-nx;ny=-ny}
+   const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;s+=vlab(X(mx+nx*.55),Y(my+ny*.55)+10,it.n,it.c)}if(it.g!=null)s+='</g>'}
+ for(const it of items)if(it.pt){const[dx,dy]=it.off||[-14,-6];s+=`<circle cx="${X(it.pt[0])}" cy="${Y(it.pt[1])}" r="5" style="fill:var(--ink)"/>`+plab(X(it.pt[0])+dx,Y(it.pt[1])+dy,it.n)}
+ const w=W*CELL+2*PX,h=H*CELL+PX+PT;return `<svg class="${cls}" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Сітка">${s}<g class="ug"></g></svg>`}
+function placeIn(v,x0,x1,y0,y1){const o=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)if(x+v[0]>=x0&&x+v[0]<=x1&&y+v[1]>=y0&&y+v[1]<=y1)o.push([x,y]);return pick(o)}
+
+/* ================= ЗАВДАННЯ ================= */
+
+/* 1. Кілька правильних відповідей: усі вектори, рівні a */
+function qMultiEqual(){let a;do a=[R(-3,3),R(-3,3)];while(Math.abs(a[0])+Math.abs(a[1])<3||a[0]===0&&Math.abs(a[1])<3);
+ const neq=R(1,3),near=Math.abs(a[0])<3?[a[0]+(a[0]>=0?1:-1),a[1]]:[a[0],a[1]+(a[1]>=0?-1:1)];
+ const others=shuffle([[-a[0],-a[1]],[-a[1],a[0]],near,[a[1],a[0]]].filter(v=>!same(v,a)&&(v[0]||v[1]))).slice(0,5-neq);
+ const cand=shuffle([...Array(neq).fill(a),...others]);while(cand.length<5)cand.push([-a[0],-a[1]]);
+ const nm=['b','c','d','m','n'],W=14,H=8,cols=['--m1','--m3','--m2','--m1','--m3'];
+ const slots=[[0,4,5,8],[5,9,5,8],[10,14,5,8],[0,4,0,3],[5,9,0,3],[10,14,0,3]];
+ /* a — у слоті 0 зверху ліворуч, кандидати — у решті */
+ const pa=placeIn(a,...slots[0]);const items=[{v:[pa,end(pa,a)],c:'--acc',n:'a'}];const dr=[];
+ cand.forEach((v,i)=>{const s=slots[i+1],p=placeIn(v,s[0],s[1]-1,s[2],s[3]);items.push({v:[p,end(p,v)],c:cols[i],n:nm[i],g:i});dr.push([p,v])});
+ const ans=cand.map((v,i)=>same(v,a)?i:-1).filter(i=>i>=0);
+ return{type:'multi',topic:'vec',tag:'кілька відповідей',q:`Сторона клітинки — 1. Познач <b>усі</b> вектори, які дорівнюють вектору ${V('a')}.`,
+  fig:grid(items,W,H),drag:{W,H,vs:dr},opts:nm.map(n=>V(n)),ans,
+  why:`Рівні вектори співнапрямлені й мають рівні модулі, тобто мають однакові координати: ${VC('a',...a)}. Такі вектори: ${ans.map(i=>V(nm[i])).join(', ')}. ${cand.map((v,i)=>same(v,a)?'':VC(nm[i],...v)).filter(Boolean).join(', ')} — не рівні ${V('a')}.`}}
+
+/* 2. Вибір правильного слова в тексті */
+function textPool(){return[
+ {h:'Ненульові вектори називають колінеарними, якщо вони лежать на одній прямій або на {0} прямих. Нульовий вектор колінеарний {1} вектору.',s:[['паралельних','перпендикулярних','перетинних'],['будь-якому','жодному','лише нульовому']]},
+ {h:'Два вектори називають рівними, якщо вони {0} і їхні модулі {1}.',s:[['співнапрямлені','колінеарні','протилежно напрямлені'],['рівні','різні','дорівнюють нулю']]},
+ {h:`Щоб знайти координати вектора ${V('AB')}, треба від координат {0} відняти відповідні координати {1}.`,s:[['точки B (кінця)','точки A (початку)'],['точки A (початку)','точки B (кінця)']]},
+ {h:'Модуль вектора — це {0} відрізка, який зображує вектор. Модуль нульового вектора дорівнює {1}.',s:[['довжина','напрямок','середина'],['0','1','−1']]},
+ {h:`Різницею векторів ${V('a')} і ${V('b')} називають такий вектор ${V('c')}, що {0}.`,s:[['b + c = a','a + c = b','a + b = c']]},
+ {h:`За правилом трикутника вектор ${V('b')} відкладають від {0} вектора ${V('a')}. Сума ${SUM('a','b')} іде від початку вектора ${V('a')} до {1} вектора ${V('b')}.`,s:[['кінця','початку'],['кінця','початку']]},
+ {h:`Якщо ${VC('a',I('x')+'<sub>1</sub>',I('y')+'<sub>1</sub>')} і ${VC('b',I('x')+'<sub>2</sub>',I('y')+'<sub>2</sub>')}, то вектор ${DIF('a','b')} має координати {0}.`,s:[['(x₁ − x₂; y₁ − y₂)','(x₂ − x₁; y₂ − y₁)','(x₁ + x₂; y₁ + y₂)']]}]}
+function qText(){const ps=shuffle(textPool()).slice(0,2);let k=0;const sel=[];
+ const html=ps.map(p=>p.h.replace(/\{(\d)\}/g,(_,j)=>{const o=p.s[+j];sel.push({o:shuffle(o),ans:o[0]});return `{${k++}}`})).join('<br>');
+ return{type:'textsel',topic:'tf',tag:'вибір у тексті',q:'Вибери правильне слово чи вираз у кожному пропуску.',html,sel,
+  why:'Повний текст:<br>'+ps.map(p=>p.h.replace(/\{(\d)\}/g,(_,j)=>`<span style="font-weight:700;text-decoration:underline">${p.s[+j][0]}</span>`)).join('<br>')}}
+
+/* 3. Пропуски в розв'язанні: модуль вектора */
+function qModSteps(){const[p,q]=pick([[3,4],[4,3],[6,8],[8,6],[5,12],[12,5]]);const x=p*pick([1,-1]),y=q*pick([1,-1]),s=x*x+y*y,r=Math.hypot(x,y);
+ return{type:'num',topic:'mod',tag:'пропуски в розв’язанні',q:`Заповни пропуски в розв’язанні. Знайди модуль вектора ${VC('a',x,y)}.`,
+  form:`${ABS(V('a'))} = ${RT(pp(x)+'²&nbsp;+&nbsp;'+pp(y)+'²')} = ${RTF(IN+'&nbsp;+&nbsp;'+IN)} = ${RTF(IN)} = ${IN}`,ans:[x*x,y*y,s,r],
+  why:`${pp(x)}² = ${x*x}, ${pp(y)}² = ${y*y}; ${x*x} + ${y*y} = ${s}; ${RT(s)} = ${r}. Отже, ${EQ(ABS(V('a')),r)}.`}}
+
+/* 4. Діапазон: між якими цілими лежить модуль */
+function qRange(){let x,y,s;do{x=R(-6,6);y=R(-6,6);s=x*x+y*y}while(!x||!y||Number.isInteger(Math.sqrt(s))||s>60);const n=Math.floor(Math.sqrt(s));
+ return{type:'num',topic:'mod',tag:'діапазон',q:`Дано ${VC('a',x,y)}. Між якими двома сусідніми цілими числами лежить ${ABS(V('a'))}?`,
+  form:`${IN} &lt; ${ABS(V('a'))} &lt; ${IN}`,ans:[n,n+1],
+  why:`${ABS(V('a'))} = ${RT(pp(x)+'²&nbsp;+&nbsp;'+pp(y)+'²')} = ${RT(s)}. Оскільки ${n*n} &lt; ${s} &lt; ${(n+1)*(n+1)}, то ${n} &lt; ${RT(s)} &lt; ${n+1}.`}}
+
+/* 5. Побудова: відклади вектор від точки */
+function qBuildFrom(){const W=10,H=7;let v,A;do{v=[R(-4,4),R(-4,4)]}while(!v[0]||!v[1]);A=placeIn(v,0,W,0,H);const[p]=letters(1);
+ return{type:'build',mode:'end',topic:'coord',tag:'побудова',q:`Сторона клітинки — 1. Відклади від точки ${I(p)} вектор ${VC('a',...v)}: натисни на вузол сітки, де буде кінець вектора.`,
+  W,H,start:A,v,items:[{pt:A,n:p,off:[A[0]===0?16:-16,A[1]===H?22:-8]}],
+  why:`Від точки ${I(p)} рухаємося на ${Math.abs(v[0])} кл. ${v[0]>0?'праворуч':'ліворуч'} і на ${Math.abs(v[1])} кл. ${v[1]>0?'вгору':'вниз'} — там кінець вектора (зелений пунктир).`}}
+
+/* 6. Кілька полів: координати і модуль вектора за точками */
+function qCoordMod(){const[p,q]=pick([[3,4],[4,3],[0,5],[5,0],[3,-4],[-4,3],[-3,-4],[4,-3],[0,-3],[-6,8]]);let A;do A=[R(-4,4),R(-4,4)];while(!A[0]||!A[1]||Math.abs(A[0]+p)>9||Math.abs(A[1]+q)>9);
+ const B=[A[0]+p,A[1]+q],[a,b]=letters(2),r=Math.hypot(p,q);
+ return{type:'num',topic:'coord',tag:'кілька полів',q:`Дано точки ${PC(a,...A)} і ${PC(b,...B)}. Знайди координати і модуль вектора ${V(a+b)}.`,
+  form:`${V(a+b)}${M('(')}${IN};&nbsp;${IN}${M(')')}, &nbsp; ${ABS(V(a+b))} = ${IN}`,ans:[p,q,r],
+  why:`${M(mn(B[0])+' − '+pp(A[0])+' = '+mn(p))}; ${M(mn(B[1])+' − '+pp(A[1])+' = '+mn(q))}, отже, ${VC(a+b,p,q)}. ${ABS(V(a+b))} = ${RT(pp(p)+'²&nbsp;+&nbsp;'+pp(q)+'²')} = ${RT(p*p+q*q)} = ${r}.`}}
+
+/* 7. Задача: четверта вершина паралелограма */
+function qParD(){let A,B,Cc,D;do{A=[R(-4,4),R(-4,4)];B=[R(-4,4),R(-4,4)];Cc=[R(-4,4),R(-4,4)];D=[A[0]+Cc[0]-B[0],A[1]+Cc[1]-B[1]]}
+ while(Math.abs(cross([B[0]-A[0],B[1]-A[1]],[Cc[0]-B[0],Cc[1]-B[1]]))<4||Math.abs(D[0])>8||Math.abs(D[1])>8);
+ const ab=[B[0]-A[0],B[1]-A[1]];
+ return{type:'num',topic:'coord',tag:'задача',q:`${I('ABCD')} — паралелограм, ${PC('A',...A)}, ${PC('B',...B)}, ${PC('C',...Cc)}. Знайди координати вершини ${I('D')}.`,
+  form:`${I('D')}${M('(')}${IN};&nbsp;${IN}${M(')')}`,ans:D,
+  why:`У паралелограмі ${EQ(V('AB'),V('DC'))}. ${VC('AB',...ab)}. Нехай ${PC('D',I('x'),I('y'))}, тоді ${VC('DC',mn(Cc[0])+'&nbsp;−&nbsp;'+I('x'),mn(Cc[1])+'&nbsp;−&nbsp;'+I('y'))}. Прирівнюємо: ${M(mn(Cc[0])+' − '+I('x')+' = '+mn(ab[0]))}, ${M(I('x')+' = '+mn(D[0]))}; ${M(mn(Cc[1])+' − '+I('y')+' = '+mn(ab[1]))}, ${M(I('y')+' = '+mn(D[1]))}. Отже, ${PC('D',...D)}.`}}
+
+/* 8. З'єднай пари */
+function qConnect(){const[A,B,Cc,O]=letters(4);
+ const pairs=[[SUM(A+B,B+Cc),V(A+Cc)],[DIF(A+B,A+Cc),V(Cc+B)],[DIF(O+A,O+B),V(B+A)],[SUM(A+B,B+A),Z]];
+ const L=pairs.map(p=>p[0]),Rt=shuffle([...pairs.map(p=>p[1]),V(Cc+A)]);
+ return{type:'connect',topic:'ops',tag:'з’єднай пари',q:'З’єднай кожен вираз з його значенням: натисни вираз ліворуч, потім значення праворуч.',
+  L,R:Rt,ans:pairs.map(p=>Rt.indexOf(p[1])),
+  why:pairs.map(p=>EQ(p[0],p[1])).join('; ')+'.'}}
+
+/* 9. Побудова суми / різниці на сітці */
+function qBuildOps(){const W=12,H=7;let a,b;do{a=[R(-3,3),R(-3,3)];b=[R(-3,3),R(-3,3)]}while(Math.abs(cross(a,b))<5||Math.hypot(...a)<2||Math.hypot(...b)<2);
+ const kind=pick(['a-b','b-a','a+b']),t=kind==='a-b'?[a[0]-b[0],a[1]-b[1]]:kind==='b-a'?[b[0]-a[0],b[1]-a[1]]:[a[0]+b[0],a[1]+b[1]];
+ const O=placeIn([0,0],Math.max(0,-a[0],-b[0])+1,W-Math.max(0,a[0],b[0])-1,Math.max(0,-a[1],-b[1]),H-Math.max(0,a[1],b[1]));
+ const expr=kind==='a-b'?DIF('a','b'):kind==='b-a'?DIF('b','a'):SUM('a','b');
+ return{type:'build',mode:'free',topic:'ops',tag:'побудова',q:`Побудуй вектор ${expr}: натисни на вузол — початок вектора, потім на другий вузол — його кінець.`,
+  W,H,v:t,items:[{v:[O,end(O,a)],c:'--acc',n:'a'},{v:[O,end(O,b)],c:'--m1',n:'b',flip:1}],
+  why:kind==='a+b'?`За правилом паралелограма (або трикутника) сума ${SUM('a','b')} — це діагональ від спільного початку. Її координати ${C(...t)}.`
+   :`Різниця векторів зі спільним початком іде від кінця від’ємника (${V(kind==='a-b'?'b':'a')}) до кінця зменшуваного (${V(kind==='a-b'?'a':'b')}). Її координати ${C(...t)}.`}}
+
+/* 10. Обчисли вираз за координатами */
+function qExpr(){let a,b,c;do{a=[R(-5,5),R(-5,5)];b=[R(-5,5),R(-5,5)];c=[R(-5,5),R(-5,5)]}while([a,b,c].some(v=>!v[0]||!v[1]));
+ const s=[a[0]+b[0]-c[0],a[1]+b[1]-c[1]];const e=M(V('a')+'&nbsp;+&nbsp;'+V('b')+'&nbsp;−&nbsp;'+V('c'));
+ return{type:'num',topic:'ops',tag:'обчислення',q:`Дано ${VC('a',...a)}, ${VC('b',...b)}, ${VC('c',...c)}. Знайди координати вектора ${e}.`,
+  form:`${e}${M('(')}${IN};&nbsp;${IN}${M(')')}`,ans:s,
+  why:`${M(mn(a[0])+' + '+pp(b[0])+' − '+pp(c[0])+' = '+mn(s[0]))}; ${M(mn(a[1])+' + '+pp(b[1])+' − '+pp(c[1])+' = '+mn(s[1]))}. Отже, ${M(e+C(...s))}.`}}
+
+/* 11. Послідовність кроків */
+function orderPool(){return[
+ {t:`Розташуй кроки знаходження модуля вектора ${V('AB')}, якщо відомі координати точок ${I('A')} і ${I('B')}.`,topic:'mod',
+  s:['Від координат точки B відняти координати точки A.','Піднести кожну координату вектора до квадрата.','Додати отримані квадрати.','Добути квадратний корінь із суми.']},
+ {t:`Розташуй кроки побудови вектора ${DIF('a','b')}.`,topic:'ops',
+  s:['Вибрати довільну точку O.',`Відкласти від точки O вектори ${V('a')} і ${V('b')}.`,'Сполучити кінці цих векторів.',`Поставити стрілку в кінці вектора ${V('a')}.`]},
+ {t:`Розташуй кроки знаходження вершини ${I('D')} паралелограма ${I('ABCD')}, якщо відомі ${I('A')}, ${I('B')}, ${I('C')}.`,topic:'coord',
+  s:[`Записати рівність ${EQ(V('AB'),V('DC'))}.`,`Знайти координати вектора ${V('AB')}.`,`Записати координати ${V('DC')} через координати ${PC('D',I('x'),I('y'))}.`,`Прирівняти відповідні координати й знайти ${I('x')} і ${I('y')}.`]},
+ {t:`Розташуй кроки побудови суми ${SUM('a','b')} за правилом трикутника.`,topic:'ops',
+  s:[`Відкласти вектор ${V('a')} від довільної точки.`,`Від кінця вектора ${V('a')} відкласти вектор ${V('b')}.`,`Сполучити початок вектора ${V('a')} з кінцем вектора ${V('b')}.`,`Поставити стрілку в кінці вектора ${V('b')}.`]}]}
+function qOrder(){const p=pick(orderPool());let sh;do sh=shuffle(p.s.map((_,i)=>i));while(sh.every((v,i)=>v===i));
+ return{type:'order',topic:p.topic,tag:'послідовність',q:p.t+' Натискай кроки в потрібному порядку.',items:p.s,sh,
+  why:'Правильний порядок:<br>'+p.s.map((s,i)=>`${i+1}) ${s}`).join('<br>')}}
+
+/* 12. Правда / неправда */
+function tfPool(){const[P,Q]=letters(2);return[
+ ['Протилежно напрямлені вектори колінеарні.',1,''],
+ ['Будь-які два колінеарні вектори співнапрямлені.',0,'колінеарні вектори можуть бути й протилежно напрямленими.'],
+ ['Співнапрямлені вектори завжди рівні.',0,'у рівних векторів мають бути ще й рівні модулі.'],
+ [`Якщо ${M(V('a')+'&nbsp;↑↑&nbsp;'+V('b'))} і ${M(V('b')+'&nbsp;↑↑&nbsp;'+V('c'))}, то ${M(V('a')+'&nbsp;↑↑&nbsp;'+V('c'))}.`,1,''],
+ ['Модуль вектора може бути від’ємним числом.',0,'модуль — це довжина, тому він не від’ємний.'],
+ ['Рівні вектори мають рівні модулі.',1,''],
+ ['Якщо модулі двох векторів рівні, то ці вектори рівні.',0,'рівні вектори ще й мають бути співнапрямленими.'],
+ [`${EQ(ABS(V(P+Q)),ABS(V(Q+P)))}.`,1,''],
+ [`Вектори ${VC('a',2,-3)} і ${VC('b',-3,2)} рівні.`,0,'у рівних векторів рівні відповідні координати.'],
+ [`${EQ(DIF('a','b'),M(V('a')+'&nbsp;+&nbsp;(−'+V('b')+')'))}.`,1,''],
+ [`${EQ(DIF(P+Q,P+'K'),V(Q+'K'))}.`,0,`${EQ(DIF(P+Q,P+'K'),V('K'+Q))}.`],
+ [`Модуль вектора ${VC('a',0,-5)} дорівнює −5.`,0,`${EQ(ABS(V('a')),5)}.`],
+ [`Якщо ${VC('a',1,2)}, ${VC('b',3,-2)}, то ${M(SUM('a','b')+C(4,0))}.`,1,''],
+ [`Для будь-яких векторів ${EQ(ABS(SUM('a','b')),M(ABS(V('a'))+'&nbsp;+&nbsp;'+ABS(V('b'))))}.`,0,'це правда лише для співнапрямлених векторів.']]}
+function qTF(){const rows=shuffle(tfPool()).slice(0,4).map(t=>({st:t[0],o:['Правда','Неправда'],ans:t[1]?0:1,w:t[1]?'правда':'неправда: '+t[2]}));
+ return{type:'seg',topic:'tf',tag:'правда / неправда',q:'Правда чи неправда? Вибери для кожного твердження.',rows,
+  why:rows.map((r,i)=>`${i+1}) ${r.w[0].toUpperCase()+r.w.slice(1).replace(/\.$/,'')}.`).join('<br>')}}
+
+
+/* ---------- КОЛІНЕАРНІ ВЕКТОРИ ---------- */
+const UDIR=[[1,0],[0,1],[1,1],[1,-1],[1,2],[2,1],[2,-1],[1,-2]];
+const kmax=u=>Math.floor(3/Math.max(Math.abs(u[0]),Math.abs(u[1])));
+/* A. Класифікація на сітці: ↑↑ / ↑↓ / неколінеарні */
+function qColGrid(){let u=pick(UDIR);if(Math.random()<.5)u=[-u[0],-u[1]];const km=kmax(u),sc=(k,s)=>[u[0]*k*s,u[1]*k*s];
+ const a=sc(R(1,km),1);let w;do w=pick(UDIR).map(t=>t*pick([1,-1]));while(cross(w,u)===0);w=w.map(t=>t*R(1,kmax(w)));
+ const kinds=shuffle(['up','dn',pick(['up','dn']),'no',pick(['up','dn','no'])]);
+ const vs=kinds.map(k=>k==='no'?(Math.random()<.5?w:[w[1],-w[0]].map(t=>cross([w[1],-w[0]],u)?t:t)):sc(R(1,km),k==='up'?1:-1));
+ vs.forEach((v,i)=>{if(kinds[i]==='no'&&cross(v,u)===0)vs[i]=w});
+ const nm=['b','c','d','m','n'],W=14,H=8,cols=['--m1','--m3','--m2','--m1','--m3'];
+ const slots=[[0,4,5,8],[5,9,5,8],[10,14,5,8],[0,4,0,3],[5,9,0,3],[10,14,0,3]];
+ const pa=placeIn(a,0,3,5,8);const items=[{v:[pa,end(pa,a)],c:'--acc',n:'a'}],dr=[];
+ vs.forEach((v,i)=>{const s=slots[i+1],p=placeIn(v,s[0],s[1]-1,s[2],s[3]);items.push({v:[p,end(p,v)],c:cols[i],n:nm[i],g:i});dr.push([p,v])});
+ const lab={up:'співнапрямлений з '+V('a'),dn:'протилежно напрямлений до '+V('a'),no:'не колінеарний з '+V('a')};
+ const O=['↑↑','↑↓','не колінеарні'],K={up:0,dn:1,no:2};
+ return{type:'seg',inl:1,topic:'col',tag:'класифікація',q:`Визнач, як розташований кожен вектор відносно вектора ${V('a')}. Перетягни вектори, якщо треба.`,
+  fig:grid(items,W,H),drag:{W,H,vs:dr},
+  rows:vs.map((v,i)=>({st:M(V(nm[i])+' і '+V('a')),o:O,ans:K[kinds[i]]})),
+  why:`Колінеарні вектори лежать на одній прямій або на паралельних прямих. ${vs.map((v,i)=>V(nm[i])+' — '+lab[kinds[i]]).join('; ')}.`}}
+/* B. Колінеарні вектори у фігурі */
+function figPar(){const P={A:[40,200],B:[110,45],C:[330,45],D:[260,200]};P.O=[(P.A[0]+P.C[0])/2,(P.A[1]+P.C[1])/2];
+ const ln=(p,q,d)=>`<line x1="${P[p][0]}" y1="${P[p][1]}" x2="${P[q][0]}" y2="${P[q][1]}" style="stroke:var(--ink);stroke-width:${d?2:3}${d?';stroke-dasharray:7 6':''}"/>`;
+ const lb=(n,dx,dy)=>`<circle cx="${P[n][0]}" cy="${P[n][1]}" r="4" style="fill:var(--ink)"/>`+plab(P[n][0]+dx,P[n][1]+dy,n);
+ return `<svg viewBox="0 0 370 235" width="370" height="235" role="img" aria-label="Паралелограм">${ln('A','B')+ln('B','C')+ln('C','D')+ln('D','A')+ln('A','C',1)+ln('B','D',1)+lb('A',-14,16)+lb('B',-12,-8)+lb('C',12,-8)+lb('D',12,20)+lb('O',0,30)}</svg>`}
+function figTrap(){const P={A:[30,200],B:[110,50],C:[250,50],D:[340,200]};P.M=[(P.A[0]+P.B[0])/2,(P.A[1]+P.B[1])/2];P.N=[(P.C[0]+P.D[0])/2,(P.C[1]+P.D[1])/2];
+ const ln=(p,q,d)=>`<line x1="${P[p][0]}" y1="${P[p][1]}" x2="${P[q][0]}" y2="${P[q][1]}" style="stroke:var(--ink);stroke-width:${d?2:3}${d?';stroke-dasharray:7 6':''}"/>`;
+ const lb=(n,dx,dy)=>`<circle cx="${P[n][0]}" cy="${P[n][1]}" r="4" style="fill:var(--ink)"/>`+plab(P[n][0]+dx,P[n][1]+dy,n);
+ return `<svg viewBox="0 0 370 235" width="370" height="235" role="img" aria-label="Трапеція">${ln('A','B')+ln('B','C')+ln('C','D')+ln('D','A')+ln('M','N',1)+lb('A',-12,18)+lb('B',-12,-8)+lb('C',12,-8)+lb('D',12,18)+lb('M',-18,4)+lb('N',18,4)}</svg>`}
+function qColFig(){const vr=pick([
+ {f:figPar,t:`${I('ABCD')} — паралелограм, ${I('O')} — точка перетину діагоналей.`,g:'AB',ok:['DC','CD','BA'],no:['AD','BC','AC','BO'],e:`${I('AB')} ∥ ${I('DC')}, тому вектори на прямих ${I('AB')} і ${I('DC')} колінеарні ${V('AB')}.`},
+ {f:figPar,t:`${I('ABCD')} — паралелограм, ${I('O')} — точка перетину діагоналей.`,g:'AC',ok:['OA','OC','CO'],no:['BD','OB','AB','DC'],e:`Точки ${I('A')}, ${I('O')}, ${I('C')} лежать на одній прямій, тому вектори на ній колінеарні ${V('AC')}.`},
+ {f:figTrap,t:`${I('ABCD')} — трапеція з основами ${I('AD')} і ${I('BC')}, ${I('MN')} — її середня лінія.`,g:'AD',ok:['BC','CB','MN','NM'],no:['AB','CD','AC','MB'],e:`Основи трапеції і середня лінія паралельні, тому вектори на них колінеарні ${V('AD')}.`}]);
+ const okk=shuffle(vr.ok).slice(0,R(2,3)),opts=shuffle([...okk,...shuffle(vr.no).slice(0,6-okk.length)]);
+ return{type:'multi',topic:'col',tag:'кілька відповідей',q:`${vr.t} Познач <b>усі</b> вектори, колінеарні вектору ${V(vr.g)}.`,fig:vr.f(),
+  opts:opts.map(o=>V(o)),ans:opts.map((o,i)=>okk.includes(o)?i:-1).filter(i=>i>=0),
+  why:`${vr.e} Правильно: ${okk.map(V).join(', ')}.`}}
+/* C. Побудова колінеарного вектора */
+function qColBuild(){let u=pick(UDIR.filter(d=>Math.max(...d.map(Math.abs))===1||Math.random()<.5));if(Math.random()<.5)u=[-u[0],-u[1]];
+ const a=u.slice(),c=pick([[1,2],[-1,1],[-1,2]]),v=[a[0]*c[0]*c[1],a[1]*c[0]*c[1]],W=12,H=7;
+ const pa=placeIn(a,0,3,0,H),P=placeIn(v,5,W,0,H),[p]=letters(1);
+ const txt=(c[0]>0?`співнапрямлений з вектором ${V('a')}`:`протилежно напрямлений до вектора ${V('a')}`)+`, і ${EQ(ABS(V('b')),c[1]===2?'2'+ABS(V('a')):ABS(V('a')))}`;
+ return{type:'build',mode:'end',topic:'col',tag:'побудова',q:`Від точки ${I(p)} відклади вектор ${V('b')}, ${txt}. Натисни на вузол сітки — кінець вектора.`,
+  W,H,start:P,v,items:[{v:[pa,end(pa,a)],c:'--acc',n:'a'},{pt:P,n:p,off:[P[0]===W?-16:16,P[1]===H?22:-8]}],
+  why:`Вектор ${V('a')} зміщує на ${C(...a)} клітинок. ${c[0]>0?'Той самий напрямок':'Протилежний напрямок — змінюємо знаки'}${c[1]===2?', удвічі довший — подвоюємо зсув':''}: від ${I(p)} рухаємося на ${C(...v)} (зелений пунктир).`}}
+
+function build(){return[qMultiEqual(),qColGrid(),qColFig(),qColBuild(),qText(),qModSteps(),qRange(),qBuildFrom(),qCoordMod(),qParD(),qConnect(),qBuildOps(),qExpr(),qOrder(),qTF()]}
+
+/* ================= РУШІЙ ================= */
+let Q=[],cur=0,res=[],t0=0,tick=null,FIN=false;
+const main=document.getElementById('main'),bar=document.getElementById('bar'),timer=document.getElementById('timer');
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+const PCOL=['#2457b3','#7a3fb0','#d9771c','#0f8b8d','#8a6d1f'];
+function start(){FIN=false;Q=build();cur=0;res=Q.map(()=>null);t0=Date.now();clearInterval(tick);tick=setInterval(()=>timer.textContent=fmt(Math.floor((Date.now()-t0)/1000)),1000);timer.textContent='0:00';show()}
+function drawBar(){bar.classList.add('nums');bar.innerHTML=Q.map((_,i)=>`<button type="button" data-q="${i}" class="${res[i]===true?'ok':res[i]===false?'bad':''}${i===cur&&!FIN?' cur':''}" aria-label="Завдання ${i+1}"${FIN?' disabled':''}>${i+1}</button>`).join('');
+ if(!FIN)bar.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=+b.dataset.q;show()})}
+const numv=s=>{s=String(s).trim().replace(/[−–]/g,'-');return /^-?\d+$/.test(s)?+s:NaN};
+const svgPt=(svg,e)=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
+function setupDrag(q,svg){const D=q.drag;svg.style.touchAction='none';q.sv.off=q.sv.off||D.vs.map(()=>[0,0]);
+ const gs=[...svg.querySelectorAll('.dv')];const put=()=>gs.forEach(g=>{const o=q.sv.off[+g.dataset.g];g.setAttribute('transform',`translate(${o[0]*CELL},${-o[1]*CELL})`)});put();
+ gs.forEach(g=>{const k=+g.dataset.g;g.onpointerdown=e=>{e.preventDefault();g.setPointerCapture(e.pointerId);g.classList.add('grab');const s0=svgPt(svg,e),o0=q.sv.off[k].slice();
+  g.onpointermove=ev=>{const p=svgPt(svg,ev);let dx=o0[0]+Math.round((p.x-s0.x)/CELL),dy=o0[1]-Math.round((p.y-s0.y)/CELL);const[[x,y],[vx,vy]]=D.vs[k];
+   const cl=(t,b0,v,Mx)=>Math.max(-b0+Math.max(0,-v),Math.min(Mx-b0-Math.max(0,v),t));dx=cl(dx,x,vx,D.W);dy=cl(dy,y,vy,D.H);q.sv.off[k]=[dx,dy];put()};
+  g.onpointerup=g.onpointercancel=()=>{g.onpointermove=null;g.classList.remove('grab')}}});
+ const r=document.getElementById('rst');if(r)r.onclick=()=>{q.sv.off=D.vs.map(()=>[0,0]);put()}}
+
+/* ---- типи: html / підготовка / готовність / перевірка / позначення ---- */
+const KP=`<div class="kp" id="kp">${['1','2','3','4','5','−','6','7','8','9','0','⌫'].map(k=>`<button type="button" data-k="${k}">${k}</button>`).join('')}</div><div class="hint">Числа можна вводити кнопками або з клавіатури.</div>`;
+const T={
+ choice:{html:q=>`<div class="opts${q.two?' two':''}">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>`},
+ multi:{
+  html:q=>`<div class="opts" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr))">${q.opts.map((o,i)=>`<button class="opt multi" data-i="${i}"><span class="box">${(q.sv.set||[]).includes(i)?'✓':''}</span>${o}</button>`).join('')}</div><div class="hint">Правильних відповідей може бути кілька.</div>`,
+  init:q=>{q.sv.set=q.sv.set||[]},
+  bind:(q,el,rd)=>el.querySelectorAll('.opt').forEach(b=>{const i=+b.dataset.i;if(q.sv.set.includes(i))b.classList.add('sel');b.onclick=()=>{if(res[cur]!==null)return;
+   const k=q.sv.set.indexOf(i);if(k<0)q.sv.set.push(i);else q.sv.set.splice(k,1);b.classList.toggle('sel');b.querySelector('.box').textContent=k<0?'✓':'';rd()}}),
+  ready:q=>q.sv.set.length>0,
+  check:q=>q.sv.set.length===q.ans.length&&q.ans.every(i=>q.sv.set.includes(i)),
+  mark:(q,el)=>el.querySelectorAll('.opt').forEach(b=>{const i=+b.dataset.i,a=q.ans.includes(i),s=q.sv.set.includes(i);b.classList.remove('sel');if(a)b.classList.add('right');else if(s)b.classList.add('wrong');if(a&&!s)b.querySelector('.box').textContent='✓'})},
+ num:{
+  html:q=>{let k=0;return `<div class="calc"><div class="form">${q.form.replace(/\[\]/g,()=>{const i=k++;return `<input class="num" id="n${i}" inputmode="none" autocomplete="off" aria-label="поле ${i+1}">`})}</div>${KP}</div>`},
+  init:q=>{q.sv.vals=q.sv.vals||q.ans.map(()=>'')},
+  bind:(q,el,rd,go)=>{const ins=[...el.querySelectorAll('input.num')];ins.forEach((x,i)=>x.value=q.sv.vals[i]);if(res[cur]!==null)return;
+   let act=0;const setAct=i=>{act=i;ins.forEach((x,j)=>x.classList.toggle('act',j===i))};setAct(0);
+   ins.forEach((x,i)=>{x.onfocus=()=>setAct(i);x.oninput=()=>{x.value=x.value.replace(/[^0-9\-−–]/g,'').slice(0,4);q.sv.vals[i]=x.value;rd()};x.onkeydown=e=>{if(e.key==='Enter'&&!go.disabled)go.click()}});
+   el.querySelectorAll('#kp button').forEach(b=>b.onclick=()=>{const x=ins[act];let v=x.value,k=b.dataset.k;
+    if(k==='⌫')v=v.slice(0,-1);else if(k==='−')v=v.startsWith('−')||v.startsWith('-')?v.slice(1):'−'+v;else if(v.replace(/[−-]/,'').length<3)v+=k;
+    x.value=v;q.sv.vals[act]=v;rd();})},
+  ready:q=>q.sv.vals.every(v=>!isNaN(numv(v))),
+  check:q=>q.ans.every((a,i)=>numv(q.sv.vals[i])===a),
+  mark:(q,el)=>{el.querySelectorAll('input.num').forEach((x,i)=>{x.classList.remove('act');const ok=numv(x.value)===q.ans[i];x.classList.add(ok?'right':'wrong');x.readOnly=true;if(!ok)x.title='Правильно: '+q.ans[i]});el.querySelectorAll('#kp button').forEach(b=>b.disabled=true)}},
+ textsel:{
+  html:q=>`<div class="tx">${q.html.replace(/\{(\d+)\}/g,(_,k)=>`<select data-r="${k}" aria-label="пропуск ${+k+1}"><option value="">…</option>${q.sel[+k].o.map(o=>`<option>${o}</option>`).join('')}</select>`)}</div>`,
+  init:q=>{q.sv.m=q.sv.m||[]},
+  bind:(q,el,rd)=>el.querySelectorAll('select').forEach(s=>{const k=+s.dataset.r;s.value=q.sv.m[k]||'';s.onchange=()=>{q.sv.m[k]=s.value;rd()}}),
+  ready:q=>q.sel.every((_,k)=>q.sv.m[k]),
+  check:q=>q.sel.every((s,k)=>q.sv.m[k]===s.ans),
+  mark:(q,el)=>el.querySelectorAll('select').forEach(s=>{const k=+s.dataset.r;s.disabled=true;s.classList.add(q.sv.m[k]===q.sel[k].ans?'right':'wrong')})},
+ seg:{
+  html:q=>`<div class="calc${q.inl?' inl':''}">${q.rows.map((r,i)=>`<div class="tfrow"><div class="st">${i+1}) ${r.st}</div><div class="seg">${r.o.map((o,j)=>`<button class="opt" data-r="${i}" data-j="${j}">${o}</button>`).join('')}</div></div>`).join('')}</div>`,
+  init:q=>{q.sv.segs=q.sv.segs||[]},
+  bind:(q,el,rd)=>{const bs=[...el.querySelectorAll('.seg .opt')];bs.forEach(x=>{if(q.sv.segs[+x.dataset.r]===+x.dataset.j)x.classList.add('sel');
+   x.onclick=()=>{if(res[cur]!==null)return;const r=+x.dataset.r;bs.filter(y=>+y.dataset.r===r).forEach(y=>y.classList.remove('sel'));x.classList.add('sel');q.sv.segs[r]=+x.dataset.j;rd()}})},
+  ready:q=>q.rows.every((_,i)=>q.sv.segs[i]!=null),
+  check:q=>q.rows.every((r,i)=>q.sv.segs[i]===r.ans),
+  mark:(q,el)=>el.querySelectorAll('.seg .opt').forEach(x=>{const r=+x.dataset.r,j=+x.dataset.j;x.classList.remove('sel');if(j===q.rows[r].ans)x.classList.add('right');else if(q.sv.segs[r]===j)x.classList.add('wrong')})},
+ connect:{
+  html:q=>`<div class="con"><div class="col">${q.L.map((t,i)=>`<button class="opt" data-l="${i}"><span>${t}</span><span class="pn"></span></button>`).join('')}</div><div class="col">${q.R.map((t,i)=>`<button class="opt" data-rr="${i}"><span>${t}</span><span class="pn"></span></button>`).join('')}</div></div><div class="hint">Щоб розірвати пару, натисни на вираз ліворуч ще раз. Одне значення зайве.</div>`,
+  init:q=>{q.sv.pr=q.sv.pr||q.L.map(()=>null);q.sv.act=null},
+  bind:(q,el,rd)=>{const Ls=[...el.querySelectorAll('[data-l]')],Rs=[...el.querySelectorAll('[data-rr]')];
+   const paint=()=>{Ls.forEach((b,i)=>{const r=q.sv.pr[i],pn=b.querySelector('.pn');b.classList.toggle('act',q.sv.act===i);pn.textContent=r!=null?i+1:'';pn.style.background=r!=null?PCOL[i]:'transparent';b.style.borderColor=r!=null?PCOL[i]:''});
+    Rs.forEach((b,j)=>{const i=q.sv.pr.indexOf(j),pn=b.querySelector('.pn');pn.textContent=i>=0?i+1:'';pn.style.background=i>=0?PCOL[i]:'transparent';b.style.borderColor=i>=0?PCOL[i]:''})};paint();q.paint=paint;
+   if(res[cur]!==null)return;
+   Ls.forEach((b,i)=>b.onclick=()=>{if(res[cur]!==null)return;if(q.sv.pr[i]!=null){q.sv.pr[i]=null;q.sv.act=null}else q.sv.act=q.sv.act===i?null:i;paint();rd()});
+   Rs.forEach((b,j)=>b.onclick=()=>{if(res[cur]!==null||q.sv.act==null)return;const o=q.sv.pr.indexOf(j);if(o>=0)q.sv.pr[o]=null;q.sv.pr[q.sv.act]=j;q.sv.act=null;paint();rd()})},
+  ready:q=>q.sv.pr.every(v=>v!=null),
+  check:q=>q.ans.every((a,i)=>q.sv.pr[i]===a),
+  mark:(q,el)=>el.querySelectorAll('[data-l]').forEach((b,i)=>{const ok=q.sv.pr[i]===q.ans[i];b.classList.add(ok?'right':'wrong');b.style.borderColor='';
+   if(!ok)b.insertAdjacentHTML('beforeend',`<span style="color:var(--ok);font-weight:700;font-size:16px">= ${q.R[q.ans[i]]}</span>`)})},
+ order:{
+  html:q=>`<div class="ord"><div class="lbl">Твій порядок:</div><div id="oa" class="ord"></div><div class="lbl" id="ol">Кроки (натисни наступний):</div><div id="ob" class="ord"></div><div class="actions"><button type="button" class="btn ghost sm" id="ores">Почати спочатку</button></div></div>`,
+  init:q=>{q.sv.seq=q.sv.seq||[]},
+  bind:(q,el,rd)=>{const oa=el.querySelector('#oa'),ob=el.querySelector('#ob');
+   const paint=()=>{const done=res[cur]!==null;oa.innerHTML=q.sv.seq.length?q.sv.seq.map((i,k)=>`<button class="opt" data-s="${k}"${done?` data-ok="${i===k}"`:''}><span class="k">${k+1}</span><span>${q.items[i]}</span></button>`).join(''):'<div class="slot">Тут з’являться кроки в тому порядку, в якому ти їх натискатимеш.</div>';
+    const rest=q.sh.filter(i=>!q.sv.seq.includes(i));ob.innerHTML=rest.map(i=>`<button class="opt" data-i="${i}"><span>${q.items[i]}</span></button>`).join('');el.querySelector('#ol').hidden=!rest.length;
+    if(done){oa.querySelectorAll('.opt').forEach(b=>b.classList.add(b.dataset.ok==='true'?'right':'wrong'));el.querySelector('#ores').hidden=true;return}
+    ob.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{q.sv.seq.push(+b.dataset.i);paint();rd()});
+    oa.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{q.sv.seq.splice(+b.dataset.s,1);paint();rd()})};
+   q.paint=paint;paint();el.querySelector('#ores').onclick=()=>{q.sv.seq=[];paint();rd()}},
+  ready:q=>q.sv.seq.length===q.items.length,
+  check:q=>q.sv.seq.every((v,i)=>v===i),
+  mark:q=>q.paint()},
+ build:{
+  html:q=>`<div class="fig">${grid(q.items,q.W,q.H,'bsvg')}</div><div class="actions"><button type="button" class="btn ghost sm" id="bclr">Стерти побудову</button></div>`,
+  init:q=>{q.sv.pts=q.sv.pts||[]},
+  bind:(q,el,rd)=>{const svg=el.querySelector('.bsvg'),ug=svg.querySelector('.ug'),X=x=>PX+x*CELL,Y=y=>PT+(q.H-y)*CELL;
+   const draw=()=>{const P=q.sv.pts;let h='';const s=q.mode==='end'?q.start:P[0],e=q.mode==='end'?P[0]:P[1];
+    if(res[cur]!==null){const st=s||q.start||[0,0];if(st){const ce=end(st,q.v);if(ce[0]>=0&&ce[0]<=q.W&&ce[1]>=0&&ce[1]<=q.H)h+=arrowSvg(X(st[0]),Y(st[1]),X(ce[0]),Y(ce[1]),'--ok',4,1)}}
+    if(s&&e&&!same(s,e))h+=arrowSvg(X(s[0]),Y(s[1]),X(e[0]),Y(e[1]),res[cur]===false?'--bad':'--m2',5);
+    else if(q.mode==='free'&&P[0])h+=`<circle cx="${X(P[0][0])}" cy="${Y(P[0][1])}" r="8" style="fill:var(--m2)"/>`;
+    ug.innerHTML=h};draw();q.paint=draw;
+   const clr=el.querySelector('#bclr');if(res[cur]!==null){clr.hidden=true;svg.classList.remove('bsvg');return}
+   clr.onclick=()=>{q.sv.pts=[];draw();rd()};
+   svg.addEventListener('pointerdown',e=>{if(res[cur]!==null)return;const p=svgPt(svg,e);const x=Math.round((p.x-PX)/CELL),y=q.H-Math.round((p.y-PT)/CELL);if(x<0||x>q.W||y<0||y>q.H)return;
+    if(q.mode==='end')q.sv.pts=[[x,y]];else{if(q.sv.pts.length>=2)q.sv.pts=[];q.sv.pts.push([x,y])}draw();rd()})},
+  ready:q=>q.sv.pts.length===(q.mode==='end'?1:2),
+  check:q=>{const s=q.mode==='end'?q.start:q.sv.pts[0],e=q.mode==='end'?q.sv.pts[0]:q.sv.pts[1];return same([e[0]-s[0],e[1]-s[1]],q.v)},
+  mark:(q,el)=>{q.paint();const c=el.querySelector('#bclr');if(c)c.hidden=true}}};
+let warned=0;
+function show(){warned=0;drawBar();const q=Q[cur],t=T[q.type];q.sv=q.sv||{};if(t.init)t.init(q);const done=res[cur]!==null,last=cur===Q.length-1;
+ main.innerHTML=`<div class="q"><div class="qn">Завдання ${cur+1} з ${Q.length} · ${TOP[q.topic]}<span class="tag">${q.tag}</span></div><div class="qt">${q.q}</div>${q.fig?`<div class="fig">${q.fig}</div>`:''}${q.drag?`<div class="hint">Вектори можна перетягувати — це паралельне перенесення. <button type="button" class="lnk" id="rst">Повернути на місце</button></div>`:''}<div id="body">${t.html(q)}</div><div id="fb"></div>
+ <div class="actions nav"><button class="btn ghost" id="back"${cur===0?' disabled':''}>◀ Назад</button><button class="btn" id="go" disabled${done?' hidden':''}>Перевірити</button><span style="flex:1"></span><button class="btn${done?'':' ghost'}" id="fwd">${last?'Мій результат':'Вперед ▶'}</button></div></div>`;
+ const go=document.getElementById('go'),el=document.getElementById('body');
+ const rd=()=>{go.disabled=!(t.ready?t.ready(q):q.sv.sel!=null)};
+ if(q.type==='choice'){const opts=[...el.querySelectorAll('.opt')];if(q.sv.sel!=null)opts[q.sv.sel].classList.add('sel');
+  opts.forEach(b=>b.onclick=()=>{if(res[cur]!==null)return;opts.forEach(x=>x.classList.remove('sel'));b.classList.add('sel');q.sv.sel=+b.dataset.i;rd()})}
+ if(t.bind)t.bind(q,el,rd,go);
+ if(q.drag)setupDrag(q,main.querySelector('.fig svg'));
+ const mark=()=>{if(t.mark)t.mark(q,el);else el.querySelectorAll('.opt').forEach((x,i)=>{x.classList.remove('sel');if(i===q.ans)x.classList.add('right');else if(i===q.sv.sel)x.classList.add('wrong')});
+  document.getElementById('fb').innerHTML=`<div class="fb ${res[cur]?'ok':'bad'}"><b>${res[cur]?'Правильно!':'Помилка.'}</b>${q.why}</div>`};
+ rd();if(done)mark();
+ go.onclick=()=>{res[cur]=t.check?t.check(q):q.sv.sel===q.ans;drawBar();mark();go.hidden=true;const f=document.getElementById('fwd');f.classList.remove('ghost');f.focus()};
+ document.getElementById('back').onclick=()=>{if(cur>0){cur--;show()}};
+ document.getElementById('fwd').onclick=()=>{if(!last){cur++;show();return}
+  const left=res.map((x,i)=>x===null?i+1:0).filter(Boolean);
+  if(left.length&&!warned){warned=1;document.getElementById('fb').innerHTML=`<div class="fb bad"><b>Є завдання без відповіді: ${left.join(', ')}.</b>Перейди до них (номери вгорі) або натисни «Мій результат» ще раз — тоді вони будуть зараховані як неправильні.</div>`;return}
+  finish()}}
+const gradeOf=n=>n?Math.max(1,Math.round(n/Q.length*12)):0;
+const word=n=>n%10===1&&n%100!==11?'бал':[2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'бали':'балів';
+function finish(){clearInterval(tick);FIN=true;drawBar();const sec=Math.floor((Date.now()-t0)/1000);const n=res.filter(x=>x).length,t=Q.length,g=gradeOf(n);
+ const lvl=g>=10?'Високий рівень: тему засвоєно.':g>=7?'Достатній рівень: повтори окремі пункти.':g>=4?'Середній рівень: варто ще раз переглянути правила.':'Початковий рівень: повтори теорію і спробуй ще раз.';
+ const tops=Object.keys(TOP).map(k=>{const idx=Q.map((q,i)=>q.topic===k?i:-1).filter(i=>i>=0);if(!idx.length)return'';const ok=idx.filter(i=>res[i]).length;const p=ok/idx.length;
+  return `<div class="tp"><span>${TOP[k]}</span><b>${ok} з ${idx.length}</b><div class="meter"><span class="${p>=.75?'':p>=.5?'mid':'low'}" style="width:${Math.max(4,p*100)}%"></span></div></div>`}).join('');
+ const wrong=Q.map((q,i)=>res[i]?'':`<div>${i+1}. ${q.q}<br><i>${q.why}</i></div>`).join('');
+ main.innerHTML=`<div class="q result"><div class="qn">Результат · ${NAME} · час ${fmt(sec)}</div><div id="send" style="width:100%"></div><div class="big">${g} ${word(g)}</div><div class="grade">${lvl}</div><div class="hint">Правильно виконано ${n} з ${t} завдань. Оцінка за 12-бальною шкалою: ${n} : ${t} · 12 ≈ ${g}.</div>
+ <div class="topics"><div style="font-weight:700">За темами:</div>${tops}</div>
+ ${wrong?`<div class="review"><div style="border:none;background:none;padding:0;font-weight:700">Над чим попрацювати:</div>${wrong}</div>`:''}
+ <div class="actions"><button class="btn" id="again">Пройти ще раз (нові завдання)</button></div></div>`;
+ document.getElementById('again').onclick=start;
+ send(report(n,sec))}
+
+
+/* ================= ОЛІВЕЦЬ ================= */
+(function(){
+ const st=document.createElement('style');st.textContent=`
+ #ink{position:absolute;left:0;top:0;z-index:40;pointer-events:none}
+ #ink.on{pointer-events:auto;touch-action:none;cursor:crosshair}
+ #inkbar{position:fixed;right:max(6px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:60;display:flex;flex-direction:column;gap:6px;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+ #inkbar button{font:inherit;font-size:15px;font-weight:700;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;padding:6px 10px;min-height:40px}
+ #inkbar button.on{border-color:var(--acc);background:var(--acc-soft);color:var(--acc)}
+ #inkbar .col{width:34px;min-height:34px;height:34px;padding:0;border-radius:17px}
+ #inkbar .col.on{outline:3px solid var(--acc);outline-offset:2px}
+ #inkbar .tools{display:flex;flex-direction:column;gap:6px;align-items:center}
+ #inkbar .tools[hidden]{display:none}
+ #inkbar .lb{display:none}#inkbar button{padding:4px 6px;min-width:40px}
+ @media (max-width:480px){#inkbar .col{width:30px;height:30px;min-height:30px}#inkbar button{min-height:36px;min-width:36px}}`;document.head.appendChild(st);
+ const cv=document.createElement('canvas');cv.id='ink';document.body.appendChild(cv);const cx=cv.getContext('2d');
+ const COLS=[['#1f4fbf','синій'],['#d0342c','червоний'],['#16884f','зелений'],['#222','чорний']];
+ const bar=document.createElement('div');bar.id='inkbar';
+ bar.innerHTML=`<div class="tools" hidden>${COLS.map((c,i)=>`<button class="col${i===0?' on':''}" data-c="${i}" style="background:${c[0]}" aria-label="${c[1]} колір"></button>`).join('')}
+  <button id="ier" title="Гумка: стирає лінію, якої торкнешся">🧽<span class="lb"> Гумка</span></button><button id="icl" title="Стерти все на цьому завданні">🗑<span class="lb"> Стерти все</span></button></div><button id="ipen" title="Олівець: писати й малювати поверх завдання">✏️</button>`;
+ document.body.appendChild(bar);
+ const S={};let on=false,col=0,er=false,drawing=null;const key=()=>FIN?'res':'q'+cur;
+ const strokes=()=>S[key()]||(S[key()]=[]);
+ const size=()=>{const oh=cv.style.height;cv.style.height='0px';cv.style.width='0px';const w=document.documentElement.clientWidth,h=Math.max(document.documentElement.scrollHeight,innerHeight),d=devicePixelRatio||1;
+  if(cv.width!==Math.round(w*d)||cv.height!==Math.round(h*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.width=w+'px';cv.style.height=h+'px';return true}cv.style.width=w+'px';cv.style.height=h+'px';return false};
+ const drawStroke=s=>{cx.strokeStyle=s.c;cx.lineWidth=3;cx.lineCap='round';cx.lineJoin='round';cx.beginPath();s.p.forEach((p,i)=>i?cx.lineTo(p[0],p[1]):cx.moveTo(p[0],p[1]));if(s.p.length===1)cx.lineTo(s.p[0][0]+.1,s.p[0][1]);cx.stroke()};
+ const redraw=()=>{size();const d=devicePixelRatio||1;cx.setTransform(d,0,0,d,0,0);cx.clearRect(0,0,cv.width,cv.height);strokes().forEach(drawStroke)};
+ window.inkShow=redraw;
+ const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+ const erase=p=>{const L=strokes(),n=L.length;for(let i=L.length-1;i>=0;i--)if(L[i].p.some(q=>Math.hypot(q[0]-p[0],q[1]-p[1])<16))L.splice(i,1);if(L.length!==n)redraw()};
+ cv.addEventListener('pointerdown',e=>{if(!on)return;e.preventDefault();try{getSelection().removeAllRanges()}catch(_){}cv.setPointerCapture(e.pointerId);const p=pos(e);
+  if(er){erase(p);drawing='er';return}drawing={c:COLS[col][0],p:[p]};strokes().push(drawing);drawStroke(drawing)});
+ cv.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);if(drawing==='er'){erase(p);return}
+  const l=drawing.p[drawing.p.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])<1.5)return;cx.strokeStyle=drawing.c;cx.lineWidth=3;cx.lineCap='round';cx.beginPath();cx.moveTo(l[0],l[1]);cx.lineTo(p[0],p[1]);cx.stroke();drawing.p.push(p)});
+ const up=()=>{drawing=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+ const tools=bar.querySelector('.tools'),pen=bar.querySelector('#ipen'),erb=bar.querySelector('#ier');
+ pen.onclick=()=>{on=!on;cv.classList.toggle('on',on);tools.hidden=!on;pen.classList.toggle('on',on);pen.innerHTML=on?'✋':'✏️';pen.title=on?'Вимкнути олівець':'Олівець: писати й малювати поверх завдання';document.body.style.userSelect=on?'none':'';document.body.style.webkitUserSelect=on?'none':'';redraw()};
+ bar.querySelectorAll('.col').forEach(b=>b.onclick=()=>{col=+b.dataset.c;er=false;erb.classList.remove('on');bar.querySelectorAll('.col').forEach(x=>x.classList.toggle('on',x===b))});
+ erb.onclick=()=>{er=!er;erb.classList.toggle('on',er);bar.querySelectorAll('.col').forEach((x,i)=>x.classList.toggle('on',!er&&i===col))};
+ bar.querySelector('#icl').onclick=()=>{S[key()]=[];redraw()};
+ addEventListener('resize',redraw);
+ if(window.ResizeObserver)new ResizeObserver(()=>{if(size())redraw()}).observe(document.body);
+ const _show=show;show=function(){_show();redraw()};
+ const _fin=finish;finish=function(){_fin();redraw()};
+})();
+/* ---------- надсилання: пошта + таблиця «Тести» ---------- */
+const TEACHER='snv.teacher@gmail.com',TEST='Бліц «Вектори: модуль, координати, дії»';
+const SHEET_URL="https://script.google.com/macros/s/AKfycbzM7TLQaL4Pd4VKw3tBYgg8lmwlguuL7gGlD-0XfF-MU4HF0yTYhQG2N1lDEceRM2819g/exec",SHEET_TOKEN="7b3f9c21e5a84d06";
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function devId(){let id=LS.get('pg_dev',null);if(!id){id='П-'+Math.random().toString(36).slice(2,7).toUpperCase();LS.set('pg_dev',id)}return id}
+function devLabel(){const u=navigator.userAgent;const os=/iPhone/.test(u)?'iPhone':/iPad/.test(u)?'iPad':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows':/Mac/.test(u)?'Mac':/Linux/.test(u)?'Linux':'інше';
+ const br=/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/Chrome\//.test(u)?'Chrome':/Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'браузер';
+ return `${devId()} · ${os}, ${br}, екран ${screen.width}×${screen.height}`}
+let NAME='';
+function intro(){clearInterval(tick);timer.textContent='0:00';bar.innerHTML='';
+ main.innerHTML=`<div class="q"><div class="qt">Введи своє прізвище та ім’я</div>
+ <input id="nm" class="name" type="text" autocomplete="name" maxlength="60" placeholder="Наприклад: Коваленко Оксана" value="${NAME.replace(/"/g,'&quot;')}">
+ <div class="hint">Після останнього запитання результат автоматично надійде вчителю.</div><div id="nmfb"></div>
+ <div class="actions"><button class="btn" id="begin">Почати бліц</button></div></div>`;
+ const nm=document.getElementById('nm'),go=()=>{const v=nm.value.trim().replace(/\s+/g,' ');
+  if(v.length<3||!/\s/.test(v)){document.getElementById('nmfb').innerHTML='<div class="fb bad">Напиши і прізвище, і ім’я.</div>';nm.focus();return}
+  NAME=v;document.getElementById('who').textContent=NAME;document.getElementById('who').hidden=false;start()};
+ document.getElementById('begin').onclick=go;nm.onkeydown=e=>{if(e.key==='Enter')go()};nm.focus()}
+const plain=h=>{const d=document.createElement('div');d.innerHTML=h.replace(/<sub>/g,'_');d.querySelectorAll('.vc').forEach(e=>e.textContent=e.textContent+'⃗');return d.textContent.replace(/\s+/g,' ').trim()};
+function report(n,sec){const when=new Date().toLocaleString('uk-UA');
+ const hist=LS.get('pg_hist',[]);const prev=hist.map(h=>`${h.name} (${h.when}${h.test?', '+h.test:''}, ${h.g} б.)`);
+ const g=gradeOf(n);hist.push({name:NAME,when,g,test:'Вектори: модуль, координати'});LS.set('pg_hist',hist.slice(-20));
+ const others=[...new Set(hist.slice(0,-1).map(h=>h.name).filter(x=>x.toLowerCase()!==NAME.toLowerCase()))];
+ const tops=Object.keys(TOP).map(k=>{const idx=Q.map((q,i)=>q.topic===k?i:-1).filter(i=>i>=0);return idx.length?`${TOP[k]}: ${idx.filter(i=>res[i]).length} з ${idx.length}`:''}).filter(Boolean).join('; ');
+ const det=res.map((v,k)=>`${k+1}) ${v?'+':'−'}`).join(', ');
+ const wr=Q.map((q,i)=>res[i]?'':`${i+1}${res[i]===null?' (без відповіді)':''}. ${plain(q.q)}`).filter(Boolean);
+ return{'_subject':`${TEST}: ${NAME} — ${g} з 12`,'_template':'table','_captcha':'false',
+  'Учень':NAME,'Тест':TEST,'Оцінка':`${g} з 12`,'Бали':`${n} з ${Q.length}`,'Час виконання':fmt(sec),'Дата':when,'Завдання':det,'За темами':tops,'Помилки':wr.length?wr.join(' | '):'немає',
+  'Пристрій':devLabel(),'Інші імена на цьому пристрої':others.length?others.join(', '):'немає','Попередні спроби на пристрої':prev.length?prev.join('; '):'немає'}}
+function toSheet(r){const data={};Object.keys(r).filter(k=>k[0]!=='_').forEach(k=>data[k]=r[k]);data['Бали (з 15)']=r['Бали'];
+ const summary=`${TEST}: ${r['Учень']} — ${r['Оцінка']}, час ${r['Час виконання']}; ${r['Завдання']}; пристрій ${r['Пристрій']}; інші імена на пристрої: ${r['Інші імена на цьому пристрої']}; IP ${r['IP-адреса']}`;
+ return fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:SHEET_TOKEN,test:TEST,path:`Вектори/${r['Учень']}/${r['Дата']}`,summary,data})}).then(x=>x.json()).then(j=>{if(j&&j.ok===false)throw new Error(j.error||'sheet');return true})}
+async function send(r){const st=document.getElementById('send');st.innerHTML='<div class="fb" style="background:var(--acc-soft);color:var(--acc)">Надсилаю результат вчителю…</div>';
+ try{const c=new AbortController();setTimeout(()=>c.abort(),3500);const j=await(await fetch('https://api.ipify.org?format=json',{signal:c.signal})).json();r['IP-адреса']=j.ip}catch(e){r['IP-адреса']='не вдалося визначити'}
+ const sh=toSheet(r).then(()=>true,()=>false);
+ try{const x=await fetch('https://formsubmit.co/ajax/'+TEACHER,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(r)});
+  const j=await x.json().catch(()=>({}));if(!x.ok||String(j.success)==='false')throw new Error(j.message||x.status);
+  st.innerHTML='<div class="fb ok"><b>Результат надіслано вчителю ✓</b></div>'}
+ catch(e){if(await sh){st.innerHTML='<div class="fb ok"><b>Результат надіслано вчителю ✓</b></div>';return}
+  const body=Object.keys(r).filter(k=>k[0]!=='_').map(k=>`${k}: ${r[k]}`).join('\n');
+  st.innerHTML=`<div class="fb bad"><b>Не вдалося надіслати автоматично.</b>Натисни кнопку, щоб надіслати результат листом.<div class="actions" style="margin-top:8px"><a class="btn" href="mailto:${TEACHER}?subject=${encodeURIComponent(r._subject)}&body=${encodeURIComponent(body)}" style="text-decoration:none">Надіслати листом</a></div></div>`}}
+intro();
+</script>
+
+</body>
+</html>
